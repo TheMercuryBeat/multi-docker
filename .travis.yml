@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t diegomercury/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run diegomercury/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t diegomercury/multi-client ./client
+  - docker build -t diegomercury/multi-nginx ./nginx
+  - docker build -t diegomercury/multi-server ./server
+  - docker build -t diegomercury/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push diegomercury/multi-client
+  - docker push diegomercury/multi-nginx
+  - docker push diegomercury/multi-server
+  - docker push diegomercury/multi-worker
